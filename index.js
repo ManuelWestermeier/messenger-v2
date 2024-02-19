@@ -45,7 +45,7 @@ createServer({ port }, async client => {
     //to create a new room
     client.onGet("create-room", (userInRoom) => {
         if (!user) return false
-        if (!(userInRoom instanceof Array)) return false
+        if (!(typeof userInRoom == "object")) return false
         return createRoom(userInRoom)
     })
 
@@ -93,11 +93,16 @@ function sendMessage(user, msg) {
     fs.writeFileSync(`${roomPath}/message-data/${data.id}.txt`, JSON.stringify(data), "utf-8")
 }
 
-function createRoom(usersInRoom = []) {
+function createRoom(usersInRoom = {}) {
     //check if all user exist
-    if (usersInRoom
+    if (Object.keys(usersInRoom)
         .map(userID => fs.existsSync(`data/user/${securifyPath(userID + "")}.txt`))
         .includes(false)
+    ) return false
+    //check if one user is admin
+    if (!Object.keys(usersInRoom)
+        .map(userID => usersInRoom[userID] == "admin")
+        .includes(true)
     ) return false
     //create the id
     var id = securifyPath(randomBytes(30).toString("base64url"))
@@ -109,6 +114,7 @@ function createRoom(usersInRoom = []) {
     fs.mkdirSync(`${roomPath}/message-data/`, { recursive: true })
     fs.writeFileSync(`${roomPath}/user.txt`, JSON.stringify(usersInRoom), "utf-8")
     fs.writeFileSync(`${roomPath}/messages.txt`, "[]", "utf-8")
+    //send the id back
     return id;
 }
 
