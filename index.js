@@ -78,7 +78,7 @@ function sendMessage(user, msg) {
     if (!Object.keys(usersInRoom).includes(user)) return
     //create the data
     var data = {
-        form: user,
+        from: user,
         id: randomBytes(10).toString("base64url"),
         data: msg?.data + "" || "",
         type: msg?.type + "" || "text",
