@@ -62,6 +62,21 @@ createServer({ port }, async client => {
         //return the name
         return fs.readFileSync(`${roomPath}/name.txt`, "utf-8")
     })
+    //to get the room messages
+    client.onGet("chat-messages", room => {
+        if (!user) return
+        room += "";
+        //create the room path
+        var roomPath = `data/rooms/${securifyPath(room)}`
+        //check if the room exist
+        if (!fs.existsSync(roomPath)) return false
+        //ckeck if the user is in the room
+        var usersInRoom = JSON.parse(fs.readFileSync(`${roomPath}/user.txt`, "utf-8"))
+        if (!Object.keys(usersInRoom).includes(user)) return false
+        //return the name
+        var messageIDs = JSON.parse(fs.readFileSync(`${roomPath}/messages.txt`, "utf-8"))
+        return messageIDs.map(id => JSON.parse(fs.readFileSync(`${roomPath}/message-data/${id}.txt`), "utf-8"))
+    })
 
 })
 
@@ -91,12 +106,10 @@ function sendMessage(user, msg) {
         if (sockets?.[userInRoom]) {
             //check if the user cant write
             if (usersInRoom[userInRoom] != "listen")
-                //check if the user isnt the sender
-                if (userInRoom != user)
-                    for (var clientID in sockets[userInRoom]) {
-                        //send
-                        sockets[userInRoom][clientID]?.say?.("incomming-message", data)
-                    }
+                for (var clientID in sockets[userInRoom]) {
+                    //send
+                    sockets[userInRoom][clientID]?.say?.("incomming-message", data)
+                }
         }
     });
     //store the messages
