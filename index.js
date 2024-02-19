@@ -61,7 +61,7 @@ function sendMessage(user, msg) {
     if (!fs.existsSync(roomPath)) return
     //ckeck if the user is in the room
     var usersInRoom = JSON.parse(fs.readFileSync(`${roomPath}/user.txt`, "utf-8"))
-    if (!usersInRoom.includes(user)) return
+    if (!Object.keys(usersInRoom).includes(user)) return
     //create the data
     var data = {
         form: user,
@@ -74,14 +74,16 @@ function sendMessage(user, msg) {
     }
     log(data)
     //send message to all user in room
-    usersInRoom.forEach(userInRoom => {
+    Object.keys(usersInRoom).forEach(userInRoom => {
         if (sockets?.[userInRoom]) {
-            //check if the user isnt the sender
-            if (userInRoom != user)
-                for (var client in sockets[userInRoom]) {
-                    //send
-                    client?.say?.("incomming-message", data)
-                }
+            //check if the user cant write
+            if (usersInRoom[userInRoom] != "listen")
+                //check if the user isnt the sender
+                if (userInRoom != user)
+                    for (var client in sockets[userInRoom]) {
+                        //send
+                        client?.say?.("incomming-message", data)
+                    }
         }
     });
     //store the messages
@@ -114,6 +116,9 @@ function createRoom(usersInRoom = {}) {
     fs.mkdirSync(`${roomPath}/message-data/`, { recursive: true })
     fs.writeFileSync(`${roomPath}/user.txt`, JSON.stringify(usersInRoom), "utf-8")
     fs.writeFileSync(`${roomPath}/messages.txt`, "[]", "utf-8")
+    fs.writeFileSync(`${roomPath}/name.txt`, `Room ${id}`, "utf-8")
+    fs.writeFileSync(`${roomPath}/description.txt`, "Hello!!\nThis is a new Room", "utf-8")
+    fs.writeFileSync(`${roomPath}/logo.txt`, "", "utf-8")
     //send the id back
     return id;
 }
