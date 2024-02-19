@@ -39,20 +39,24 @@ createServer({ port }, async client => {
     //to send messages
     client.onSay("send-message", msg => {
         if (!user) return
+        if (typeof msg != "object") return
         sendMessage(user, msg)
     })
     //to create a new room
-    client.onSay()
+    client.onGet("create-room", (userInRoom) => {
+        if (!user) return false
+        if (!(userInRoom instanceof Array)) return false
+        return createRoom(userInRoom)
+    })
 
 })
 
 //to send messages
 function sendMessage(user, msg) {
     //check the params
-    if (typeof msg != "object") return
     if (!msg.room) return
     //create the room path
-    var roomPath = `data/rooms/${msg.room + ""}`
+    var roomPath = `data/rooms/${securifyPath(msg.room) + ""}`
     //check if the room exist
     if (!fs.existsSync(roomPath)) return
     //ckeck if the user is in the room
@@ -91,13 +95,12 @@ function sendMessage(user, msg) {
 
 function createRoom(usersInRoom = []) {
     //check if all user exist
-    if (
-        usersInRoom
-            .map(userID => fs.existsSync(`data/user/${securifyPath(userID)}.txt`))
-            .includes(false)
+    if (usersInRoom
+        .map(userID => fs.existsSync(`data/user/${securifyPath(userID + "")}.txt`))
+        .includes(false)
     ) return false
     //create the id
-    var id = randomBytes(30).toString("base64url")
+    var id = securifyPath(randomBytes(30).toString("base64url"))
     //create the room path
     var roomPath = `data/rooms/${id}`
     //check if the room exist
