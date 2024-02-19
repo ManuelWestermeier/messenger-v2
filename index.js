@@ -48,6 +48,20 @@ createServer({ port }, async client => {
         if (!(typeof userInRoom == "object")) return false
         return createRoom(userInRoom)
     })
+    //to get the room name
+    client.onGet("chat-name", id => {
+        if (!user) return
+        id += "";
+        //create the room path
+        var roomPath = `data/rooms/${securifyPath(id)}`
+        //check if the room exist
+        if (!fs.existsSync(roomPath)) return "chat do not exist"
+        //ckeck if the user is in the room
+        var usersInRoom = JSON.parse(fs.readFileSync(`${roomPath}/user.txt`, "utf-8"))
+        if (!Object.keys(usersInRoom).includes(user)) return "you are not in the chat"
+        //return the name
+        return fs.readFileSync(`${roomPath}/name.txt`, "utf-8")
+    })
 
 })
 
@@ -56,7 +70,7 @@ function sendMessage(user, msg) {
     //check the params
     if (!msg.room) return
     //create the room path
-    var roomPath = `data/rooms/${securifyPath(msg.room) + ""}`
+    var roomPath = `data/rooms/${securifyPath(msg.room + "")}`
     //check if the room exist
     if (!fs.existsSync(roomPath)) return
     //ckeck if the user is in the room
