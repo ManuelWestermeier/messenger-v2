@@ -86,7 +86,6 @@ function sendMessage(user, msg) {
         react: msg?.reaction + "" == "none" ? false : msg?.reaction + "",
         comments: {},
     }
-    log(data)
     //send message to all user in room
     Object.keys(usersInRoom).forEach(userInRoom => {
         if (sockets?.[userInRoom]) {
@@ -94,9 +93,9 @@ function sendMessage(user, msg) {
             if (usersInRoom[userInRoom] != "listen")
                 //check if the user isnt the sender
                 if (userInRoom != user)
-                    for (var client in sockets[userInRoom]) {
+                    for (var clientID in sockets[userInRoom]) {
                         //send
-                        client?.say?.("incomming-message", data)
+                        sockets[userInRoom][clientID]?.say?.("incomming-message", data)
                     }
         }
     });
